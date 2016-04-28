@@ -117,6 +117,18 @@ public class AcceuilOpticien extends JInternalFrame
 			menuBar.add(mnClient);
 			
 			mntmListerLesClients = new JMenuItem("Lister les Clients");
+			mntmListerLesClients.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent event) {
+					try
+					{
+						btnListerClientsClick();
+					} catch (SQLException e)
+					{
+						e.printStackTrace();
+					}
+				}
+			});
 			mnClient.add(mntmListerLesClients);
 			
 			mntmCrerUnClient = new JMenuItem("Cr\u00E9er un Client");
@@ -139,6 +151,21 @@ public class AcceuilOpticien extends JInternalFrame
 			
 			
 			mntmListerLesFactures = new JMenuItem("Lister les Factures");
+			mntmListerLesFactures.addActionListener(new ActionListener() {
+				
+				@Override
+				public void actionPerformed(ActionEvent event) {
+					// TODO Auto-generated method stub
+					try
+					{
+						btnListerFactureClick();
+					} catch (SQLException e)
+					{
+						// TODO Bloc catch généré automatiquement
+						e.printStackTrace();
+					}
+				}
+			});
 			mnFacture.add(mntmListerLesFactures);
 			
 			mntmCrerUneFacture = new JMenuItem("Cr\u00E9er une Facture");
@@ -167,7 +194,30 @@ public class AcceuilOpticien extends JInternalFrame
 		AcceuilOpticien.alreadyShowed = true;
 
 	}
+	public void btnListerClientsClick() throws SQLException
+	{
+		contenu.removeAll();
+		ListeClients listeClients =	null;
+		listeClients = new ListeClients();
+		listeClients.setBounds(contenu.getBounds());
+		listeClients.setBorder(null);
+		contenu.add(listeClients);
+		listeClients.setVisible(true);
+		listeClients.repaint();
+	}
 	
+	public void btnListerFactureClick() throws SQLException
+	{
+		contenu.removeAll();
+		ListeFactures listeFactures =	null;
+		listeFactures = new ListeFactures();
+		listeFactures.setBounds(contenu.getBounds());
+		listeFactures.setBorder(null);
+		contenu.add(listeFactures);
+		listeFactures.setVisible(true);
+		listeFactures.repaint();
+	}
+
 	public void btnCreerProduitClick() throws SQLException
 	{
 		contenu.removeAll();

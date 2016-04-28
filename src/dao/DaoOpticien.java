@@ -48,7 +48,7 @@ public class DaoOpticien
 		lesClients = new ArrayList<Client>();
 		Connection connect = MySqlConnection.ConnectionMySql();
 		Statement stLienBd = connect.createStatement();
-		String req = "Select * from client";
+		String req = "Select * from client ORDER BY 1";
 		ResultSet res = stLienBd.executeQuery(req);
 		while (res.next())
 		{
@@ -57,7 +57,7 @@ public class DaoOpticien
 		}
 		
 		lesOpticiens = new ArrayList<Opticien>();
-		req = "Select * from opticien";
+		req = "Select * from opticien ORDER BY 1";
 		res = stLienBd.executeQuery(req);
 		while (res.next())
 		{
@@ -66,7 +66,7 @@ public class DaoOpticien
 		}
 		
 		lesFactures = new ArrayList<Facture>();
-		req = "Select * from Facture F, Client C, Opticien O where F.opticien = O.id and F.client = C.id ";
+		req = "Select * from Facture F, Client C, Opticien O where F.opticien = O.id and F.client = C.id ORDER BY 1";
 		res = stLienBd.executeQuery(req);
 		while (res.next())
 		{
@@ -76,16 +76,16 @@ public class DaoOpticien
 		}
 		
 		lesMontures = new ArrayList<Monture>();
-		req = "Select * from Monture, Produit where produit = ref ";
+		req = "Select * from Monture, Produit where produit = ref ORDER BY 1";
 		res = stLienBd.executeQuery(req);
 		while (res.next())
 		{
-			Monture laMonture = new Monture (res.getString(1), res.getString(4), res.getInt(6), res.getString(7), res.getDouble(4), res.getBlob(2));
+			Monture laMonture = new Monture (res.getString(1), res.getString(4), res.getInt(6), res.getString(7), res.getDouble(5), res.getBlob(2));
 			lesMontures.add(laMonture);
 		}
 		
 		lesVerres = new ArrayList<Verre>();
-		req = "Select * from Verre, Produit where produit = ref ";
+		req = "Select * from Verre, Produit where produit = ref ORDER BY 1";
 		res = stLienBd.executeQuery(req);
 		while (res.next())
 		{
@@ -175,7 +175,7 @@ public class DaoOpticien
 	public static void chargerImage(Monture laMonture) throws SQLException
 	{
 		Connection connect = MySqlConnection.ConnectionMySql();
-		PreparedStatement sql = connect.prepareStatement("Select image from Monture where produit=?");
+		PreparedStatement sql = connect.prepareStatement("Select image from Monture where produit=? ORDER BY 1");
 		sql.setString(1,laMonture.getRefProduit());
 		
 		ResultSet data = sql.executeQuery();
@@ -300,10 +300,9 @@ public class DaoOpticien
 		
 	}
 	
-	public static void creerFacture(Date laDate, int idOpticien, int idClient, HashMap<Produit, Integer> lesProduits )
+	public static void creerFacture(Date laDate, int idOpticien, int idClient, HashMap<Produit, Integer> lesProduits)
 	{
 		Connection connect = MySqlConnection.ConnectionMySql();
-		//lesFactures.add();
 		
 		try
 		{
@@ -312,17 +311,50 @@ public class DaoOpticien
     	 	sql.setInt(2,idOpticien);
     	 	sql.setInt(3, idClient);
     	 	sql.executeUpdate();
-    	 	javax.swing.JOptionPane.showMessageDialog(null, laDate); 
-    	 	//faire insertion dans table produit_facture 
+    	 	
+    	 	int idFacture = -1;
+    	 	
+    	 	ResultSet generatedKeys = sql.getGeneratedKeys();
+    	 	if(generatedKeys.next()){
+    	 		idFacture = generatedKeys.getInt(1);
+    	 	}
+    	 	System.out.println(idFacture);
+			for(Produit leProduit : lesProduits.keySet()){
+	    	 	sql = connect.prepareStatement("INSERT INTO produit_facture (facture, produit, quantitee) VALUES (?,?,?)");
+				sql.setInt(1, idFacture);
+	    	 	sql.setString(2, leProduit.getRefProduit());
+	    	 	sql.setInt(3, lesProduits.get(leProduit));
+	    	 	sql.executeUpdate();
+			}
 			
+			DaoOpticien.charger();
 		}
 		catch (SQLException e)
 		{
 			 e.printStackTrace();
 		}
 		
-		
 	}
 	
+	public static void supprimerFacture(Facture laFacture){
+		Connection connect = MySqlConnection.ConnectionMySql();
+		
+		try
+		{
+			PreparedStatement sql = connect.prepareStatement("DELETE FROM produit_facture WHERE facture=?");
+    	 	sql.setInt(1, laFacture.getIdFacture());
+    	 	sql.executeUpdate();
+			
+			sql = connect.prepareStatement("DELETE FROM facture WHERE id=?");
+    	 	sql.setInt(1, laFacture.getIdFacture());
+    	 	sql.executeUpdate();
+    	 	
+			DaoOpticien.charger();
+		}
+		catch (SQLException e)
+		{
+			 e.printStackTrace();
+		}
+	}
 
 }

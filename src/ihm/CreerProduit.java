@@ -183,7 +183,6 @@ private JTextField txtLibelle;
 					e1.printStackTrace();
 				}
 				
-	
 			}
 		});
 		btnAjouterImage.setBounds(225, 116, 172, 23);
