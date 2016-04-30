@@ -2,32 +2,31 @@ package ihm;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
-import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.sql.Date;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map.Entry;
 
-import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JInternalFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.basic.BasicInternalFrameUI;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JComboBox;
 
+import dao.DaoOpticien;
+import metier.Client;
 import metier.Facture;
 import metier.Monture;
+import metier.Opticien;
 import metier.Produit;
 import metier.Verre;
-import dao.DaoOpticien;
-
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
 public class CreerFacture extends JInternalFrame
 {
@@ -35,20 +34,45 @@ public class CreerFacture extends JInternalFrame
 	private JTextField txtQuantite;
 	private Facture  laFacture;
 	private HashMap<Produit, Integer> lesProduits;
+	private Client leClient;
 
+	private JTextArea txtDescription;
 
-	public CreerFacture() throws SQLException
-	{
-		
-		DaoOpticien.charger();
-		lesProduits = new HashMap<Produit, Integer>();
-		laFacture = new Facture();
-		
-		laFacture.setIdFacture(1);
-		laFacture.setDate(null);
-		laFacture.setLeClient(null);
-		laFacture.setLeMagasin(null);
-		
+	public CreerFacture(Client leClient) {
+		try {
+			DaoOpticien.charger();
+			this.lesProduits = new HashMap<Produit, Integer>();
+			this.laFacture = null;
+			this.leClient = leClient;
+			
+			this.init();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public CreerFacture(Facture laFacture) {
+		try {
+			this.lesProduits = laFacture.getLesProduits();
+			this.laFacture = laFacture;
+			
+			this.init();
+			
+			for (Entry<Produit, Integer> entry : lesProduits.entrySet()) {
+				Produit leProduit = entry.getKey();
+				int nbProduit = entry.getValue();
+				System.out.println(leProduit);
+				txtDescription.setText(txtDescription.getText()+(leProduit.getRefProduit()+ " - - - - Quantité: " + String.valueOf(nbProduit) +"\n"));
+				lesProduits.put(leProduit, nbProduit);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	private void init() throws SQLException{
 		
 		Container contenu = this.getContentPane();
 		BasicInternalFrameUI ui = (BasicInternalFrameUI) this.getUI();
@@ -59,7 +83,7 @@ public class CreerFacture extends JInternalFrame
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
 		contentPanel.setLayout(null);
 		
-		JTextArea txtDescription = new JTextArea();		
+		txtDescription = new JTextArea();		
 		JScrollPane sc = new JScrollPane(txtDescription);
 		sc.setBounds(100, 180, 286, 180);
 		contentPanel.add(sc);
@@ -86,8 +110,17 @@ public class CreerFacture extends JInternalFrame
 		btnCreer.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				
-				laFacture.setLesProduits(lesProduits);
-				DaoOpticien.creerFacture(new Date(new java.util.Date().getTime()), 1, 1, lesProduits);
+				
+				if(laFacture == null){
+					laFacture = new Facture();
+					laFacture.setDate(new Date(new java.util.Date().getTime()));
+					laFacture.setLeClient(leClient);
+					laFacture.setLeMagasin(Opticien.getConnected());
+					laFacture.setLesProduits(lesProduits);
+					DaoOpticien.creerFacture(laFacture);
+				}else{
+					DaoOpticien.modifierFacture(laFacture);
+				}
 			}
 		});
 		btnCreer.setBounds(178, 385, 91, 23);

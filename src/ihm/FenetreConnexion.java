@@ -16,6 +16,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
 import dao.DaoOpticien;
+import metier.Opticien;
 
 public class FenetreConnexion extends JFrame
 {
@@ -166,6 +167,7 @@ public class FenetreConnexion extends JFrame
 		}
 		else if(utilisateur instanceof metier.Opticien) //Si Opticien
 		{
+			Opticien.setConnected((Opticien)utilisateur);
 			contenu.removeAll();
 			AcceuilOpticien.alreadyShowed = false;
 			AcceuilOpticien acceuilOpticien = new AcceuilOpticien();
@@ -174,6 +176,7 @@ public class FenetreConnexion extends JFrame
 			contenu.add(acceuilOpticien);
 			acceuilOpticien.setVisible(true);
 			contenu.repaint();
+			
 		}
 		else
 		{

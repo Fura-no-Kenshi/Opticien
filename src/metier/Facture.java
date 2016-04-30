@@ -25,7 +25,6 @@ public class Facture
 		this.date = date;
 		this.leMagasin = leMagasin;
 		this.leClient = leClient;
-		this.lesProduits = new HashMap<Produit, Integer>();
 		this.lesProduits = lesProduits;
 	}
 

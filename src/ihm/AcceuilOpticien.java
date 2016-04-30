@@ -96,6 +96,17 @@ public class AcceuilOpticien extends JInternalFrame
 			menuBar.add(mnNewMenu);
 			
 			mbtnListerProduits = new JMenuItem("Lister les Produits");
+			mbtnListerProduits.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent event) {
+					try
+					{
+						btnListerProduitsClick();
+					} catch (SQLException e)
+					{
+						e.printStackTrace();
+					}
+				}
+			});
 			mnNewMenu.add(mbtnListerProduits);
 			
 			mbtnCreerProduit = new JMenuItem("Cr\u00E9er un Produit");
@@ -167,24 +178,6 @@ public class AcceuilOpticien extends JInternalFrame
 				}
 			});
 			mnFacture.add(mntmListerLesFactures);
-			
-			mntmCrerUneFacture = new JMenuItem("Cr\u00E9er une Facture");
-			mntmCrerUneFacture.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent event) {
-					try
-					{
-						btnCreerFactureClick();
-					} catch (SQLException e)
-					{
-						// TODO Bloc catch généré automatiquement
-						e.printStackTrace();
-					}
-				}
-					
-			});
-			
-	
-			mnFacture.add(mntmCrerUneFacture);
 			}
 		else
 		{
@@ -194,6 +187,19 @@ public class AcceuilOpticien extends JInternalFrame
 		AcceuilOpticien.alreadyShowed = true;
 
 	}
+	
+	public void btnListerProduitsClick() throws SQLException
+	{
+		contenu.removeAll();
+		ListeProduits listeProduits;
+		listeProduits = new ListeProduits();
+		listeProduits.setBounds(contenu.getBounds());
+		listeProduits.setBorder(null);
+		contenu.add(listeProduits);
+		listeProduits.setVisible(true);
+		listeProduits.repaint();
+	}
+	
 	public void btnListerClientsClick() throws SQLException
 	{
 		contenu.removeAll();
@@ -241,17 +247,5 @@ public class AcceuilOpticien extends JInternalFrame
 		CreerClient.setVisible(true);
 		CreerClient.repaint();
 	}
-	
 
-	public void btnCreerFactureClick() throws SQLException
-	{
-		contenu.removeAll();
-		CreerFacture CreerFacture =	null;
-		CreerFacture = new CreerFacture();
-		CreerFacture.setBounds(contenu.getBounds());
-		CreerFacture.setBorder(null);
-		contenu.add(CreerFacture);
-		CreerFacture.setVisible(true);
-		CreerFacture.repaint();
-	}
 }

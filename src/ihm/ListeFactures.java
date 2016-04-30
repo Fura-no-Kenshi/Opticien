@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.swing.JButton;
 import javax.swing.JInternalFrame;
@@ -14,6 +15,7 @@ import javax.swing.plaf.basic.BasicInternalFrameUI;
 import dao.DaoOpticien;
 import metier.Client;
 import metier.Facture;
+import metier.Produit;
 
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
@@ -44,6 +46,23 @@ public class ListeFactures extends JInternalFrame {
 	public ListeFactures(Client unClient){
 		clientActif = unClient;
 		init();
+		
+		JButton btnCreerFacture = new JButton("Créer Facture");
+		btnCreerFacture.setHorizontalAlignment(SwingConstants.CENTER);
+		btnCreerFacture.setBounds(390, 28, 100, 20);
+		btnCreerFacture.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				contentPanel.removeAll();
+				CreerFacture creerFacture = new CreerFacture(unClient);
+				creerFacture.setBounds(contentPanel.getBounds());
+				creerFacture.setBorder(null);
+				contentPanel.add(creerFacture);
+				creerFacture.setVisible(true);
+				creerFacture.repaint();
+			}
+		});
+		contentPanel.add(btnCreerFacture);
 	}
 	
 	private void init(){
@@ -128,7 +147,7 @@ public class ListeFactures extends JInternalFrame {
 		while(x < lesFactures.size() && x < page*nbRowPerPage){
 			Facture laFacture = lesFactures.get(x);
 			
-			if(laFacture.getLeClient() == clientActif){
+			if(laFacture.getLeClient() == clientActif || clientActif == null){
 				pos += 30;
 				
 				JLabel ref = new JLabel(String.valueOf(laFacture.getIdFacture()));
@@ -159,7 +178,14 @@ public class ListeFactures extends JInternalFrame {
 				btnDetail.setBounds(288, pos-3, 90, 23);
 				btnDetail.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent event) {
-						
+						contentPanel.removeAll();
+						CreerFacture creerFacture = new CreerFacture(laFacture);
+						creerFacture.setBounds(contentPanel.getBounds());
+						creerFacture.setBorder(null);
+						contentPanel.add(creerFacture);
+						creerFacture.setVisible(true);
+						creerFacture.repaint();
+
 					}
 				});
 				contentPanel.add(btnDetail);

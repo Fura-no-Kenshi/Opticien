@@ -159,7 +159,13 @@ public class ListeClients extends JInternalFrame {
 			btnFactures.setBounds(382, pos-3, 100, 23);
 			btnFactures.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent event) {
-					changePage(page);
+					contentPanel.removeAll();
+					ListeFactures listeFactures = new ListeFactures(leClient);
+					listeFactures.setBounds(contentPanel.getBounds());
+					listeFactures.setBorder(null);
+					contentPanel.add(listeFactures);
+					listeFactures.setVisible(true);
+					listeFactures.repaint();
 				}
 			});
 			factures.add(btnFactures);

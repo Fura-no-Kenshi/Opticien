@@ -10,23 +10,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Vector;
 
 import javax.sql.rowset.serial.SerialBlob;
-import javax.swing.JOptionPane;
-
-
-
-
-
-
-
-
-
-
-
-
 import metier.Client;
 import metier.Facture;
 import metier.Monture;
@@ -65,16 +53,6 @@ public class DaoOpticien
 			lesOpticiens.add(lopticien);
 		}
 		
-		lesFactures = new ArrayList<Facture>();
-		req = "Select * from Facture F, Client C, Opticien O where F.opticien = O.id and F.client = C.id ORDER BY 1";
-		res = stLienBd.executeQuery(req);
-		while (res.next())
-		{
-			//récuperer liste produit par facture
-			Facture laFacture = new Facture (res.getInt(1), res.getDate(2), new Opticien (res.getInt(14), res.getString(17), res.getString(18), res.getString(19), res.getString(20), res.getString(21), res.getString(16), res.getString(15)),  new Client (res.getInt(5), res.getString(8), res.getString(9), res.getString(10), res.getString(11), res.getString(12), res.getString(13), res.getString(7), res.getString(6)), null);
-			lesFactures.add(laFacture);
-		}
-		
 		lesMontures = new ArrayList<Monture>();
 		req = "Select * from Monture, Produit where produit = ref ORDER BY 1";
 		res = stLienBd.executeQuery(req);
@@ -91,6 +69,40 @@ public class DaoOpticien
 		{
 			Verre leVerre = new Verre (res.getString(1), res.getString(7), res.getInt(9), res.getString(10), res.getDouble(8), res.getString(2), res.getInt(3), res.getBoolean(4), res.getBoolean(5));
 			lesVerres.add(leVerre);
+		}
+		
+		lesFactures = new ArrayList<Facture>();
+		req = "Select * from Facture ORDER BY 1";
+		res = stLienBd.executeQuery(req);
+		while (res.next())
+		{
+			Client leClient = null;
+			Opticien lOpticien = null;
+			Produit lesProduits;
+
+			for (Client client : lesClients) {
+				if(client.getIdClient() == res.getInt(4))
+					leClient = client;
+			}
+			for (Opticien opticien : lesOpticiens) {
+				if(opticien.getIdOpticien() == res.getInt(3))
+					lOpticien = opticien;
+			}
+			
+			PreparedStatement sql = connect.prepareStatement("SELECT * FROM produit_facture WHERE facture = ?");
+			sql.setInt(1, res.getInt(1));
+			ResultSet data = sql.executeQuery();
+			HashMap<Produit, Integer> lesProduitsFacture = new HashMap<Produit, Integer>();
+			while(data.next()){
+				for (Produit produit : getLesProduits()) {
+					if(produit.getRefProduit().equals(data.getString(2)))
+						lesProduitsFacture.put(produit, data.getInt(3));
+				}
+			}
+			
+			Facture laFacture = new Facture (res.getInt(1), res.getDate(2), lOpticien, leClient, lesProduitsFacture);
+			System.out.println(lesProduitsFacture);
+			lesFactures.add(laFacture);
 		}
 		
 	}
@@ -143,6 +155,30 @@ public class DaoOpticien
 	public static ArrayList<Verre> getLesVerres()
 	{
 		return lesVerres;
+	}
+	
+	public static ArrayList<Produit> getLesProduits() {
+		
+		ArrayList<Produit> lesProduits = new ArrayList<Produit>();
+		
+		for(Monture laMonture : lesMontures){
+			lesProduits.add(laMonture);
+		}
+		
+		for(Verre leVerre : lesVerres){
+			lesProduits.add(leVerre);
+		}
+		
+		lesProduits.sort(new Comparator<Produit>() {
+
+			@Override
+			public int compare(Produit produit1, Produit produit2) {
+				// TODO Auto-generated method stub
+				return produit1.getRefProduit().compareTo(produit2.getRefProduit());
+			}
+	    });
+		
+		return lesProduits;
 	}
 
 	public static Vector<Verre> getVecteurVerres()
@@ -300,16 +336,16 @@ public class DaoOpticien
 		
 	}
 	
-	public static void creerFacture(Date laDate, int idOpticien, int idClient, HashMap<Produit, Integer> lesProduits)
+	public static void creerFacture(Facture laFacture)
 	{
 		Connection connect = MySqlConnection.ConnectionMySql();
 		
 		try
 		{
 			PreparedStatement sql = connect.prepareStatement("INSERT INTO facture (date, opticien , client) VALUES (?,?,?)");
-			sql.setDate(1,laDate);
-    	 	sql.setInt(2,idOpticien);
-    	 	sql.setInt(3, idClient);
+			sql.setDate(1, (Date)laFacture.getDate());
+    	 	sql.setInt(2,laFacture.getLeMagasin().getIdOpticien());
+    	 	sql.setInt(3, laFacture.getLeClient().getIdClient());
     	 	sql.executeUpdate();
     	 	
     	 	int idFacture = -1;
@@ -318,12 +354,12 @@ public class DaoOpticien
     	 	if(generatedKeys.next()){
     	 		idFacture = generatedKeys.getInt(1);
     	 	}
-    	 	System.out.println(idFacture);
-			for(Produit leProduit : lesProduits.keySet()){
+
+			for(Produit leProduit : laFacture.getLesProduits().keySet()){
 	    	 	sql = connect.prepareStatement("INSERT INTO produit_facture (facture, produit, quantitee) VALUES (?,?,?)");
 				sql.setInt(1, idFacture);
 	    	 	sql.setString(2, leProduit.getRefProduit());
-	    	 	sql.setInt(3, lesProduits.get(leProduit));
+	    	 	sql.setInt(3, laFacture.getLesProduits().get(leProduit));
 	    	 	sql.executeUpdate();
 			}
 			
@@ -334,6 +370,31 @@ public class DaoOpticien
 			 e.printStackTrace();
 		}
 		
+	}
+	
+	public static void modifierFacture(Facture laFacture) {
+Connection connect = MySqlConnection.ConnectionMySql();
+		
+		try
+		{
+			PreparedStatement sql = connect.prepareStatement("DELETE FROM produit_facture WHERE facture = ?");
+			sql.setInt(1, laFacture.getIdFacture());
+			sql.executeUpdate();
+			
+			for(Produit leProduit : laFacture.getLesProduits().keySet()){
+	    	 	sql = connect.prepareStatement("INSERT INTO produit_facture (facture, produit, quantitee) VALUES (?,?,?)");
+				sql.setInt(1, laFacture.getIdFacture());
+	    	 	sql.setString(2, leProduit.getRefProduit());
+	    	 	sql.setInt(3, laFacture.getLesProduits().get(leProduit));
+	    	 	sql.executeUpdate();
+			}
+			
+			DaoOpticien.charger();
+		}
+		catch (SQLException e)
+		{
+			 e.printStackTrace();
+		}
 	}
 	
 	public static void supprimerFacture(Facture laFacture){
@@ -356,5 +417,7 @@ public class DaoOpticien
 			 e.printStackTrace();
 		}
 	}
+
+
 
 }

@@ -13,6 +13,8 @@ public class Opticien
 	private String motDePasse;
 	private String pseudo;
 	
+	private static Opticien connectedOpticien;
+	
 	
 	public Opticien(int idOpticien, String nomOpticien, String telOpticien,
 			String cpAdrOpticien, String rueAdrOpticien, String numAdrOpticien, String motDePasse, String pseudo)
@@ -66,5 +68,14 @@ public class Opticien
 	public void creerFacture()
 	{
 		
+	}
+
+
+	public static Opticien getConnected() {
+		return connectedOpticien;
+	}
+	
+	public static void setConnected(Opticien opticien) {
+		Opticien.connectedOpticien = opticien;
 	}
 }
